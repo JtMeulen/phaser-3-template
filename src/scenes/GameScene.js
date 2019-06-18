@@ -23,19 +23,37 @@ class GameScene extends Scene {
 
     this.createPlatforms();
     this.createPlayer();
+    this.createCursors();
+  }
+
+  update() {
+    if (this.cursors.left.isDown && !this.cursors.right.isDown) {
+      this.player.setVelocityX(-160);
+      this.player.anims.play('left', true);
+    } else if (this.cursors.right.isDown && !this.cursors.left.isDown) {
+      this.player.setVelocityX(160);
+      this.player.anims.play('right', true);
+    } else {
+      this.player.setVelocityX(0);
+      this.player.anims.play('turn');
+    }
+
+    if(this.cursors.up.isDown && this.player.body.touching.down) {
+      this.player.setVelocityY(-330);
+    }
   }
 
   createPlatforms() {
     this.platforms = this.physics.add.staticGroup();
     this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-    this.platforms.create(150, 360, 'ground');
-    this.platforms.create(700, 220, 'ground');
-    this.platforms.create(180, 70, 'ground');
+    this.platforms.create(600, 400, 'ground');
+    this.platforms.create(50, 250, 'ground');
+    this.platforms.create(750, 220, 'ground');
   }
 
   createPlayer() {
-    this.player = this.physics.add.sprite(400, 100, 'dude');
-    this.player.setBounce(0.2);
+    this.player = this.physics.add.sprite(350, 100, 'dude');
+    this.player.setBounce(0.1);
 
     this.physics.add.collider(this.player, this.platforms);
     this.player.setCollideWorldBounds(true);
@@ -64,6 +82,11 @@ class GameScene extends Scene {
       repeat: -1
     });
   }
+
+  createCursors() {
+    this.cursors = this.input.keyboard.createCursorKeys();
+  }
+
 }
 
 export default GameScene;
