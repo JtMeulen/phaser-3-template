@@ -19,10 +19,11 @@ class GameScene extends Scene {
 
   create() {
     const sky = this.add.image(0, 0, "sky").setOrigin(0,0);
-    const star = this.add.image(400, 300, "star");
 
     this.createPlatforms();
     this.createPlayer();
+    this.createStars();
+    this.createAnimations();
     this.createCursors();
   }
 
@@ -57,7 +58,28 @@ class GameScene extends Scene {
 
     this.physics.add.collider(this.player, this.platforms);
     this.player.setCollideWorldBounds(true);
+  }
 
+  createStars() {
+    this.stars = this.physics.add.group({
+      key: 'star',
+      repeat: 11,
+      setXY: {x: 12, y: -50, stepX: 70}
+    });
+
+    this.stars.children.iterate(child => {
+      child.setBounce(Phaser.Math.FloatBetween(0.4, 0.8))
+    });
+
+    this.physics.add.collider(this.stars, this.platforms);
+    this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
+  }
+
+  collectStar(player, star) {
+    star.disableBody(true, true);
+  }
+
+  createAnimations() {
     this.anims.create({
       key: 'left',
       frames: this.anims.generateFrameNumbers('dude', {
