@@ -7,6 +7,12 @@ import skyImg from "../assets/sky.png";
 import dudeSprite from "../assets/dude.png";
 
 class GameScene extends Scene {
+  constructor() {
+    super();
+
+    this.score = 0;
+  }
+
   preload() {
     this.load.image("sky", skyImg);
     this.load.image("ground", plaformImg);
@@ -25,6 +31,8 @@ class GameScene extends Scene {
     this.createStars();
     this.createAnimations();
     this.createCursors();
+
+    this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'})
   }
 
   update() {
@@ -53,7 +61,7 @@ class GameScene extends Scene {
   }
 
   createPlayer() {
-    this.player = this.physics.add.sprite(350, 100, 'dude');
+    this.player = this.physics.add.sprite(320, 100, 'dude');
     this.player.setBounce(0.1);
 
     this.physics.add.collider(this.player, this.platforms);
@@ -77,6 +85,9 @@ class GameScene extends Scene {
 
   collectStar(player, star) {
     star.disableBody(true, true);
+
+    this.score += 10;
+    this.scoreText.setText('Score: ' + this.score);
   }
 
   createAnimations() {
