@@ -33,15 +33,14 @@ class GameScene extends Scene {
     this.createBombs();
     this.createAnimations();
     this.createCursors();
-
-    this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'})
+    this.createUI();
   }
 
   update() {
-    if (this.cursors.left.isDown && !this.cursors.right.isDown) {
+    if (this.cursors.left.isDown && !this.cursors.right.isDown && !this.gameOver) {
       this.player.setVelocityX(-160);
       this.player.anims.play('left', true);
-    } else if (this.cursors.right.isDown && !this.cursors.left.isDown) {
+    } else if (this.cursors.right.isDown && !this.cursors.left.isDown && !this.gameOver) {
       this.player.setVelocityX(160);
       this.player.anims.play('right', true);
     } else {
@@ -119,6 +118,7 @@ class GameScene extends Scene {
     this.player.setTint(0XFF0000);
     this.player.anims.play('turn');
     this.gameOver = true;
+    this.gameOverText.visible = true;
   }
 
   createAnimations() {
@@ -145,6 +145,13 @@ class GameScene extends Scene {
       frameRate: 10,
       repeat: -1
     });
+  }
+
+  createUI() {
+    this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'})
+    this.gameOverText = this.add.text(400, 300, 'Game Over', {fontSize: '64px', fill: '#000'});
+    this.gameOverText.setOrigin(0.5);
+    this.gameOverText.visible = false;
   }
 
   createCursors() {
