@@ -51,6 +51,12 @@ class GameScene extends Scene {
     if(this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-430);
     }
+
+    if(this.cursors.space.isDown && this.gameOver) {
+      this.gameOver = false;
+      this.score = 0;
+      this.scene.start('preload');
+    }
   }
 
   createPlatforms() {
@@ -92,7 +98,7 @@ class GameScene extends Scene {
     this.score += 10;
     this.scoreText.setText('Score: ' + this.score);
 
-    if(this.stars.countActive(true) === 10) {
+    if(this.stars.countActive(true) === 0) {
       this.resetStars();
     }
   }
@@ -123,6 +129,7 @@ class GameScene extends Scene {
 
     this.gameOver = true;
     this.gameOverText.visible = true;
+    this.startOverText.visible = true;
   }
 
   createAnimations() {
@@ -153,21 +160,15 @@ class GameScene extends Scene {
 
   createUI() {
     this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'})
-    this.gameOverText = this.add.text(400, 300, 'Game Over', {fontSize: '64px', fill: '#000'});
-    this.gameOverText.setOrigin(0.5);
+    this.gameOverText = this.add.text(400, 300, 'Game Over', {fontSize: '64px', fill: '#000'}).setOrigin(0.5);
+    this.startOverText = this.add.text(400, 350, 'Press space go back', {fontSize: '24px', fill: '#000'}).setOrigin(0.5);
+
     this.gameOverText.visible = false;
+    this.startOverText.visible = false;
   }
 
   createCursors() {
     this.cursors = this.input.keyboard.createCursorKeys();
-
-    this.mouseClick = this.input.on('pointerdown', () => {
-      if(this.gameOver) {
-        this.gameOver = false;
-        this.score = 0;
-        this.scene.start('preload');
-      }
-    });
   }
 
 }
