@@ -8,7 +8,7 @@ import dudeSprite from "../assets/dude.png";
 
 class GameScene extends Scene {
   constructor() {
-    super();
+    super({ key: 'game' });
 
     this.score = 0;
     this.gameOver = false;
