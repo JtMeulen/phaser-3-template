@@ -11,6 +11,7 @@ class GameScene extends Scene {
     super();
 
     this.score = 0;
+    this.gameOver = false;
   }
 
   preload() {
@@ -29,6 +30,7 @@ class GameScene extends Scene {
     this.createPlatforms();
     this.createPlayer();
     this.createStars();
+    this.createBombs();
     this.createAnimations();
     this.createCursors();
 
@@ -75,8 +77,8 @@ class GameScene extends Scene {
       setXY: {x: 12, y: -50, stepX: 70}
     });
 
-    this.stars.children.iterate(child => {
-      child.setBounce(Phaser.Math.FloatBetween(0.4, 0.8))
+    this.stars.children.iterate(star => {
+      star.setBounce(Phaser.Math.FloatBetween(0.4, 0.8))
     });
 
     this.physics.add.collider(this.stars, this.platforms);
@@ -88,6 +90,35 @@ class GameScene extends Scene {
 
     this.score += 10;
     this.scoreText.setText('Score: ' + this.score);
+
+    if(this.stars.countActive(true) === 0) {
+      this.resetStars();
+    }
+  }
+
+  resetStars() {
+    this.stars.children.iterate(star => {
+      star.enableBody(true, star.x, 0, true, true);
+    });
+
+    const startX = this.player.body.x < 400 ? Phaser.Math.Between(0, 400) : Phaser.Math.Between(400, 800);
+    const bomb = this.bombs.create(startX, 16, 'bomb');
+    bomb.setBounce(1);
+    bomb.setCollideWorldBounds();
+    bomb.setVelocity(Phaser.Math.Between(-200, 200), 30);
+  }
+
+  createBombs() {
+    this.bombs = this.physics.add.group();
+    this.physics.add.collider(this.bombs, this.platforms);
+    this.physics.add.collider(this.player, this.bombs, this.bombHit, null, this);
+  }
+
+  bombHit(player, bomb) {
+    this.physics.pause();
+    this.player.setTint(0XFF0000);
+    this.player.anims.play('turn');
+    this.gameOver = true;
   }
 
   createAnimations() {
