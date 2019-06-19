@@ -20,7 +20,7 @@ class GameScene extends Scene {
     this.load.image("star", starImg);
     this.load.image("bomb", bombImg);
     this.load.spritesheet("dude", dudeSprite, {
-      frameWidth: 32, frameHeight: 48
+      frameWidth: 32, frameHeight: 43
     });
   }
 
@@ -63,6 +63,7 @@ class GameScene extends Scene {
 
   createPlayer() {
     this.player = this.physics.add.sprite(320, 100, 'dude');
+    this.player.setSize(17, 38, true);
     this.player.setBounce(0.1);
 
     this.physics.add.collider(this.player, this.platforms);
@@ -76,8 +77,9 @@ class GameScene extends Scene {
       setXY: {x: 12, y: -50, stepX: 70}
     });
 
-    this.stars.children.iterate(star => {
-      star.setBounce(Phaser.Math.FloatBetween(0.4, 0.8))
+    this.stars.children.iterate(child => {
+      child.setBounce(Phaser.Math.FloatBetween(0.4, 0.8));
+      child.setCircle(12, 0 , 0);
     });
 
     this.physics.add.collider(this.stars, this.platforms);
@@ -90,7 +92,7 @@ class GameScene extends Scene {
     this.score += 10;
     this.scoreText.setText('Score: ' + this.score);
 
-    if(this.stars.countActive(true) === 0) {
+    if(this.stars.countActive(true) === 10) {
       this.resetStars();
     }
   }
@@ -102,6 +104,7 @@ class GameScene extends Scene {
 
     const startX = this.player.body.x < 400 ? Phaser.Math.Between(0, 400) : Phaser.Math.Between(400, 800);
     const bomb = this.bombs.create(startX, 16, 'bomb');
+    bomb.setCircle(7);
     bomb.setBounce(1);
     bomb.setCollideWorldBounds();
     bomb.setVelocity(Phaser.Math.Between(-200, 200), 30);
@@ -110,13 +113,14 @@ class GameScene extends Scene {
   createBombs() {
     this.bombs = this.physics.add.group();
     this.physics.add.collider(this.bombs, this.platforms);
-    this.physics.add.collider(this.player, this.bombs, this.bombHit, null, this);
+    this.physics.add.collider(this.player, this.bombs, this.handleGameOver, null, this);
   }
 
-  bombHit(player, bomb) {
+  handleGameOver(player, bomb) {
     this.physics.pause();
     this.player.setTint(0XFF0000);
     this.player.anims.play('turn');
+
     this.gameOver = true;
     this.gameOverText.visible = true;
   }
@@ -156,6 +160,14 @@ class GameScene extends Scene {
 
   createCursors() {
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.mouseClick = this.input.on('pointerdown', () => {
+      if(this.gameOver) {
+        this.gameOver = false;
+        this.score = 0;
+        this.scene.start('preload');
+      }
+    });
   }
 
 }
