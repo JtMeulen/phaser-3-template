@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 
+import { star_particle, bomb_particle } from '../utils/particle';
 import bombImg from "../assets/bomb.png";
 import starImg from "../assets/star.png";
 import plaformImg from "../assets/platform.png";
@@ -32,6 +33,7 @@ class GameScene extends Scene {
     this.createStars();
     this.createBombs();
     this.createAnimations();
+    this.createParticles();
     this.createCursors();
     this.createUI();
   }
@@ -68,9 +70,9 @@ class GameScene extends Scene {
   }
 
   createPlayer() {
-    this.player = this.physics.add.sprite(320, 100, 'dude');
+    this.player = this.physics.add.sprite(50, 400, 'dude');
     this.player.setSize(17, 38, true);
-    this.player.setBounce(0.1);
+    this.player.setBounce(0.15);
 
     this.physics.add.collider(this.player, this.platforms);
     this.player.setCollideWorldBounds(true);
@@ -94,6 +96,7 @@ class GameScene extends Scene {
 
   collectStar(player, star) {
     star.disableBody(true, true);
+    this.starParticles.emitParticleAt(star.x, star.y, 30);
 
     this.score += 10;
     this.scoreText.setText('Score: ' + this.score);
@@ -127,6 +130,8 @@ class GameScene extends Scene {
     this.player.setTint(0XFF0000);
     this.player.anims.play('turn');
 
+    this.bombParticles.emitParticleAt(bomb.x, bomb.y, 60);
+
     this.gameOver = true;
     this.gameOverText.visible = true;
     this.startOverText.visible = true;
@@ -156,6 +161,14 @@ class GameScene extends Scene {
       frameRate: 10,
       repeat: -1
     });
+  }
+
+  createParticles() {
+    this.starParticles = this.add.particles('star');
+    this.starEmitter = this.starParticles.createEmitter(star_particle);
+
+    this.bombParticles = this.add.particles('bomb');
+    this.bombEmitter = this.bombParticles.createEmitter(bomb_particle);
   }
 
   createUI() {
