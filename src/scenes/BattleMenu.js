@@ -3,6 +3,20 @@ import { Scene } from 'phaser';
 class BattleMenu extends Scene {
   constructor(){
     super({ key: 'BattleMenu', active: true });
+
+    this.timer = {
+      enemy_1: 0,
+      player_1: 0,
+      player_2: 0
+    };
+
+    this.pausedTimer = false;
+    this.secondMenu = null;
+    this.battleParams = {
+      activeChar: null,
+      chosenEnemy: 'enemy_1',
+      chosenOption: null
+    }
   }
 
   preload() {
@@ -11,56 +25,127 @@ class BattleMenu extends Scene {
   create() {
     this.createMenuBox();
     this.createFightMenu();
+    this.createStatsMenu();
+    this.createSecondMenu();
 
+    // Listen for the finished fighting animations
+    this.scene.get('BattleScene').events.on('resumeTimer', () => this.finishedTurn());
+  }
+
+  update() {
+    if(!this.pausedTimer) {
+      this.timer.enemy_1 += 2;
+      this.timer.player_1 += 3;
+      this.timer.player_2 += 5;
+    }
+
+    this.timerTextP1.setText('Player 1: ' + this.timer.player_1);
+    this.timerTextP2.setText('Player 2: ' + this.timer.player_2);
+    this.timerTextE1.setText('Enemy 1: ' + this.timer.enemy_1);
+
+    // if(this.timer.enemy_1 === 1000) {this.battleParams.activeChar = 'enemy_1'}
+    if(this.timer.player_1 >= 1000) {this.battleParams.activeChar = 'player_1', this.pausedTimer = true;}
+    if(this.timer.player_2 >= 1000) {this.battleParams.activeChar = 'player_2', this.pausedTimer = true;}
+  }
+
+  finishedTurn() {
+    this.timer[this.battleParams.activeChar] = 0;
+    this.pausedTimer = false
+    this.battleParams.activeChar = null;
+    this.battleParams.chosenOption = null;
   }
 
   createFightMenu() {
     let yPos = 450;
-
-    const battleOptions = [
-      {key: 'Attack', clickHandler: this.attackHandler},
-      {key: 'Magic', clickHandler: this.magicHandler},
-      {key: 'Defend', clickHandler: this.defendHandler},
-      {key: 'Items', clickHandler: this.itemHandler},
-    ];
+    const battleOptions = ['Attack', 'Magic', 'Defend', 'Items'];
 
     battleOptions.forEach(option => {
-      this.add.text(50, yPos, option.key, { fill: '#fff' })
+      this.add.text(50, yPos, option, { fill: '#fff' })
       .setInteractive()
-      .on('pointerdown', () => option.clickHandler(this.events));
+      .on('pointerdown', () => this.battleOptionsClickHandler(option));
 
       yPos += 30;
     });
   }
 
-  attackHandler(events) {
-    console.log('attack');
-    events.emit('attack', { char: 1, enemy: 2 });
-  };
+  createSecondMenu() {
+    this.option_1 = this.add.text(150, 450, '', { fill: '#fff' })
+      .setInteractive()
+      .on('pointerdown', () => this.SecondMenuClickHandler(1));;
 
-  magicHandler(events) {
-    console.log('magic');
-    events.emit('magic', { char: 1, enemy: 2, magic: 'fire' });
-  };
+    this.option_2 = this.add.text(150, 480, '', { fill: '#fff' })
+      .setInteractive()
+      .on('pointerdown', () => this.SecondMenuClickHandler(2));
 
-  defendHandler(events) {
-    console.log('defend');
-    events.emit('defend', { char: 1 });
-  };
+    this.option_3 = this.add.text(150, 510, '', { fill: '#fff' })
+      .setInteractive()
+      .on('pointerdown', () => this.SecondMenuClickHandler(3));
 
-  itemHandler(events) {
-    console.log('items');
-    events.emit('items', { char: 1, enemy: 0, item: 'potion' });
-  };
+    this.option_4 = this.add.text(150, 540, '', { fill: '#fff' })
+      .setInteractive()
+      .on('pointerdown', () => this.SecondMenuClickHandler(4));
+  }
+
+  battleOptionsClickHandler(option) {
+    if(this.battleParams.activeChar) {
+      switch(option) {
+        case 'Attack':
+          console.log('Attackkk')
+          this.events.emit(option, {...this.battleParams});
+          break;
+        case 'Magic':
+          this.openMagicOptions();
+          break;
+        case 'Items':
+          this.openItemOptions();
+          break;
+        case 'Defend':
+          this.events.emit(option, {...this.battleParams});
+          break;
+      }
+    }
+  }
+
+  SecondMenuClickHandler(option) {
+    this.option_1.setText('');
+    this.option_2.setText('');
+    this.option_3.setText('');
+    this.option_4.setText('');
+
+    this.battleParams.chosenOption = option;
+    this.events.emit(this.secondMenu, {...this.battleParams});
+  }
+
+  openMagicOptions() {
+    this.secondMenu = 'Magic';
+    this.option_1.setText('Fire');
+    this.option_2.setText('Lightning');
+    this.option_3.setText('Ice');
+    this.option_4.setText('Earth');
+  }
+
+  openItemOptions() {
+    this.secondMenu = 'Items';
+    this.option_1.setText('Potion');
+    this.option_2.setText('Ether');
+    this.option_3.setText('Bomb');
+    this.option_4.setText('Escape');
+  }
+
+  createStatsMenu() {
+    this.timerTextP1 = this.add.text(500, 450, 'Player 1: 0', { fill: '#fff' })
+    this.timerTextP2 = this.add.text(500, 480, 'Player 2: 0', { fill: '#fff' })
+    this.timerTextE1 = this.add.text(500, 510, 'Enemy 1: 0', { fill: '#fff' })
+  }
 
   createMenuBox() {
-    const menuBox = this.add.graphics();
     const boxSize = [10, 430, 780, 160];
+    this.menuBox = this.add.graphics();
 
-    menuBox.lineStyle(3, 0xFFFFFF);
-    menuBox.fillStyle(0x1b3c72);
-    menuBox.fillRect(...boxSize);
-    menuBox.strokeRect(...boxSize);
+    this.menuBox.lineStyle(3, 0xFFFFFF);
+    this.menuBox.fillStyle(0x1b3c72);
+    this.menuBox.fillRect(...boxSize);
+    this.menuBox.strokeRect(...boxSize);
   }
 }
 
