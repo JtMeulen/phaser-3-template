@@ -58,25 +58,19 @@ class BattleScene extends Scene {
   }
 
   magicAnimation(options) {
-    console.log('Magic', options.chosenOption)
     this.events.emit('resumeTimer');
   }
 
   defendAnimation(options) {
-    console.log('defend animation');
     this.events.emit('resumeTimer');
   }
 
   itemAnimation(options) {
-    console.log('Item', options.chosenOption)
     this.events.emit('resumeTimer');
   }
 
   enemyAttackAnimation(options) {
-    const characters = ['player_1', 'player_2'];
-    const randomChar = characters[Math.floor(Math.random() * characters.length)];
-
-    const goToPosition = this[randomChar].getCenter();
+    const goToPosition = this[options.char].getCenter();
     const originalPosition = this[options.this_enemy].getCenter();
 
     this.attackTimeLine = this.tweens.createTimeline();
@@ -88,7 +82,7 @@ class BattleScene extends Scene {
         duration: 300,
         onComplete: () => {
           // PLAY SOUND HERE
-          this[randomChar].setTint(0xff0000)
+          this[options.char].setTint(0xff0000)
         }
     });
 
@@ -100,7 +94,7 @@ class BattleScene extends Scene {
         duration: 400,
         delay: 300,
         onUpdate: () => {
-          this[randomChar].clearTint()
+          this[options.char].clearTint()
         },
         onComplete: () => {
           this.events.emit('resumeTimer');

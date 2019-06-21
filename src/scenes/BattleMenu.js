@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { calculateDamage } from '../utils/calculate';
 
 class BattleMenu extends Scene {
   constructor(){
@@ -9,6 +10,36 @@ class BattleMenu extends Scene {
       player_1: 0,
       player_2: 0
     };
+
+    this.battleStats = {
+      player_1: {
+        hp: 66,
+        defense: 12,
+        mdef: 10,
+        speed: 6,
+        magic: 16,
+        attack: 20,
+        status: []
+      },
+      player_2: {
+        hp: 44,
+        defense: 10,
+        mdef: 12,
+        speed: 8,
+        magic: 21,
+        attack: 15,
+        status: []
+      },
+      enemy_1: {
+        hp: 90,
+        defense: 14,
+        mdef: 10,
+        speed: 5,
+        magic: 13,
+        attack: 19,
+        status: []
+      }
+    }
 
     this.pausedTimer = false;
     this.secondMenu = null;
@@ -26,26 +57,49 @@ class BattleMenu extends Scene {
     this.createMenuBox();
     this.createFightMenu();
     this.createStatsMenu();
+    this.createTimerMenu();
     this.createSecondMenu();
 
     // Listen for the finished fighting animations
-    this.scene.get('BattleScene').events.on('resumeTimer', () => this.pausedTimer = false);
+    this.scene.get('BattleScene').events.on('resumeTimer', () => this.turnFinished());
   }
 
   update() {
     if(!this.pausedTimer) {
-      this.timer.enemy_1 += 2;
-      this.timer.player_1 += 3;
-      this.timer.player_2 += 5;
+      this.timer.player_1 += this.battleStats.player_1.speed;
+      this.timer.player_2 += this.battleStats.player_2.speed;
+      this.timer.enemy_1 += this.battleStats.enemy_1.speed;
     }
 
-    this.timerTextP1.setText('Player 1: ' + this.timer.player_1);
-    this.timerTextP2.setText('Player 2: ' + this.timer.player_2);
-    this.timerTextE1.setText('Enemy 1: ' + this.timer.enemy_1);
+    this.timerTextP1.setText('P1: ' + this.timer.player_1);
+    this.timerTextP2.setText('P2: ' + this.timer.player_2);
+    this.timerTextE1.setText('E1: ' + this.timer.enemy_1);
 
     if(this.timer.player_1 >= 1000) {this.battleParams.activeChar = 'player_1', this.pausedTimer = true;}
     if(this.timer.player_2 >= 1000) {this.battleParams.activeChar = 'player_2', this.pausedTimer = true;}
     if(this.timer.enemy_1 >= 1000) {this.enemyAttack('enemy_1'), this.pausedTimer = true;}
+  }
+
+  turnFinished() {
+    this.statsTextP1.setText('P1: ' + this.battleStats.player_1.hp);
+    this.statsTextP2.setText('P2: ' + this.battleStats.player_2.hp);
+    this.statsTextE1.setText('E1: ' + this.battleStats.enemy_1.hp);
+
+    this.pausedTimer = false;
+  }
+
+  updateDamage(type, option, randomChar = null) {
+    let attacker;
+    let target;
+    if(type === 'player') {
+      attacker = this.battleParams.activeChar;
+      target = this.battleParams.chosenEnemy;
+    } else {
+      attacker = option;
+      target = randomChar;
+    }
+    // calculateDamage(allStats, attacker, target, method )
+    this.battleStats = {...calculateDamage(this.battleStats, attacker, target, option)};
   }
 
   createFightMenu() {
@@ -84,6 +138,7 @@ class BattleMenu extends Scene {
       switch(option) {
         case 'Attack':
           this.timer[this.battleParams.activeChar] = 0;
+          this.updateDamage('player', option);
           this.events.emit(option, {...this.battleParams});
           this.clearAllOptions();
           break;
@@ -105,6 +160,7 @@ class BattleMenu extends Scene {
   SecondMenuClickHandler(option) {
     this.timer[this.battleParams.activeChar] = 0;
     this.battleParams.chosenOption = option;
+    this.updateDamage('player', option);
     this.events.emit(this.secondMenu, {...this.battleParams});
     this.clearAllOptions();
   }
@@ -135,14 +191,24 @@ class BattleMenu extends Scene {
   }
 
   enemyAttack(enemy) {
+    const characters = ['player_1', 'player_2'];
+    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+
     this.timer[enemy] = 0;
-    this.events.emit('Enemy_attack', { this_enemy: enemy });
+    this.updateDamage('enemy', enemy, randomChar);
+    this.events.emit('Enemy_attack', { this_enemy: enemy, char: randomChar });
   }
 
   createStatsMenu() {
-    this.timerTextP1 = this.add.text(500, 450, 'Player 1: 0', { fill: '#fff' })
-    this.timerTextP2 = this.add.text(500, 480, 'Player 2: 0', { fill: '#fff' })
-    this.timerTextE1 = this.add.text(500, 510, 'Enemy 1: 0', { fill: '#fff' })
+    this.statsTextP1 = this.add.text(420, 450, 'P1: ' + this.battleStats.player_1.hp, { fill: '#fff' })
+    this.statsTextP2 = this.add.text(420, 480, 'P1: ' + this.battleStats.player_2.hp, { fill: '#fff' })
+    this.statsTextE1 = this.add.text(420, 510, 'P1: ' + this.battleStats.enemy_1.hp, { fill: '#fff' })
+  }
+
+  createTimerMenu() {
+    this.timerTextP1 = this.add.text(500, 450, 'P1: 0', { fill: '#fff' })
+    this.timerTextP2 = this.add.text(500, 480, 'P2: 0', { fill: '#fff' })
+    this.timerTextE1 = this.add.text(500, 510, 'E1: 0', { fill: '#fff' })
   }
 
   createMenuBox() {
