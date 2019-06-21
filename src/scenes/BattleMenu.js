@@ -29,7 +29,7 @@ class BattleMenu extends Scene {
     this.createSecondMenu();
 
     // Listen for the finished fighting animations
-    this.scene.get('BattleScene').events.on('resumeTimer', () => this.finishedTurn());
+    this.scene.get('BattleScene').events.on('resumeTimer', () => this.pausedTimer = false);
   }
 
   update() {
@@ -43,16 +43,9 @@ class BattleMenu extends Scene {
     this.timerTextP2.setText('Player 2: ' + this.timer.player_2);
     this.timerTextE1.setText('Enemy 1: ' + this.timer.enemy_1);
 
-    // if(this.timer.enemy_1 === 1000) {this.battleParams.activeChar = 'enemy_1'}
     if(this.timer.player_1 >= 1000) {this.battleParams.activeChar = 'player_1', this.pausedTimer = true;}
     if(this.timer.player_2 >= 1000) {this.battleParams.activeChar = 'player_2', this.pausedTimer = true;}
-  }
-
-  finishedTurn() {
-    this.timer[this.battleParams.activeChar] = 0;
-    this.pausedTimer = false
-    this.battleParams.activeChar = null;
-    this.battleParams.chosenOption = null;
+    if(this.timer.enemy_1 >= 1000) {this.enemyAttack('enemy_1'), this.pausedTimer = true;}
   }
 
   createFightMenu() {
@@ -90,8 +83,9 @@ class BattleMenu extends Scene {
     if(this.battleParams.activeChar) {
       switch(option) {
         case 'Attack':
-          console.log('Attackkk')
+          this.timer[this.battleParams.activeChar] = 0;
           this.events.emit(option, {...this.battleParams});
+          this.clearAllOptions();
           break;
         case 'Magic':
           this.openMagicOptions();
@@ -100,20 +94,19 @@ class BattleMenu extends Scene {
           this.openItemOptions();
           break;
         case 'Defend':
+          this.timer[this.battleParams.activeChar] = 0;
           this.events.emit(option, {...this.battleParams});
+          this.clearAllOptions();
           break;
       }
     }
   }
 
   SecondMenuClickHandler(option) {
-    this.option_1.setText('');
-    this.option_2.setText('');
-    this.option_3.setText('');
-    this.option_4.setText('');
-
+    this.timer[this.battleParams.activeChar] = 0;
     this.battleParams.chosenOption = option;
     this.events.emit(this.secondMenu, {...this.battleParams});
+    this.clearAllOptions();
   }
 
   openMagicOptions() {
@@ -130,6 +123,20 @@ class BattleMenu extends Scene {
     this.option_2.setText('Ether');
     this.option_3.setText('Bomb');
     this.option_4.setText('Escape');
+  }
+
+  clearAllOptions() {
+    this.battleParams.activeChar = null;
+    this.battleParams.chosenOption = null;
+    this.option_1.setText('');
+    this.option_2.setText('');
+    this.option_3.setText('');
+    this.option_4.setText('');
+  }
+
+  enemyAttack(enemy) {
+    this.timer[enemy] = 0;
+    this.events.emit('Enemy_attack', { this_enemy: enemy });
   }
 
   createStatsMenu() {

@@ -58,7 +58,6 @@ class BattleScene extends Scene {
   }
 
   magicAnimation(options) {
-    console.log('magic animation');
     console.log('Magic', options.chosenOption)
     this.events.emit('resumeTimer');
   }
@@ -69,11 +68,47 @@ class BattleScene extends Scene {
   }
 
   itemAnimation(options) {
-    console.log('item animation');
-    console.log('Magic', options.chosenOption)
+    console.log('Item', options.chosenOption)
     this.events.emit('resumeTimer');
   }
 
+  enemyAttackAnimation(options) {
+    const characters = ['player_1', 'player_2'];
+    const randomChar = characters[Math.floor(Math.random() * characters.length)];
+
+    const goToPosition = this[randomChar].getCenter();
+    const originalPosition = this[options.this_enemy].getCenter();
+
+    this.attackTimeLine = this.tweens.createTimeline();
+    this.attackTimeLine.add({
+        targets: this[options.this_enemy],
+        x: goToPosition.x - 50,
+        y: goToPosition.y,
+        ease: 'Cubic',
+        duration: 300,
+        onComplete: () => {
+          // PLAY SOUND HERE
+          this[randomChar].setTint(0xff0000)
+        }
+    });
+
+    this.attackTimeLine.add({
+        targets: this[options.this_enemy],
+        x: originalPosition.x,
+        y: originalPosition.y,
+        ease: 'Cubic',
+        duration: 400,
+        delay: 300,
+        onUpdate: () => {
+          this[randomChar].clearTint()
+        },
+        onComplete: () => {
+          this.events.emit('resumeTimer');
+        }
+    });
+
+    this.attackTimeLine.play();
+  }
 
   createBattleEventHandler() {
     this.battleMenu = this.scene.get('BattleMenu');
@@ -82,6 +117,7 @@ class BattleScene extends Scene {
     this.battleMenu.events.on('Magic', (options) => this.magicAnimation(options));
     this.battleMenu.events.on('Defend', (options) => this.defendAnimation(options));
     this.battleMenu.events.on('Items', (options) => this.itemAnimation(options));
+    this.battleMenu.events.on('Enemy_attack', (options) => this.enemyAttackAnimation(options));
   }
 }
 
