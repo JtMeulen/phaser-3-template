@@ -4,7 +4,9 @@ import star from "../assets/star.png";
 
 class BattleScene extends Scene {
   constructor(){
-    super({ key: 'BattleScene' })
+    super({ key: 'BattleScene' });
+
+    this.activeTarget = 'enemy_1';
   }
 
   preload() {
@@ -15,11 +17,37 @@ class BattleScene extends Scene {
   create() {
     this.forestBG = this.add.image(0, 0, 'forest_bg').setOrigin(0, 0);
 
-    this.player_1 = this.physics.add.sprite(600, 220, 'star');
-    this.player_2 = this.physics.add.sprite(630, 280, 'star');
-    this.enemy_1 = this.physics.add.sprite(130, 240, 'star');
+    this.player_1 = this.physics.add.sprite(600, 220, 'star').setInteractive();
+    this.player_1.name = 'player_1';
+    this.player_2 = this.physics.add.sprite(630, 280, 'star').setInteractive();
+    this.player_2.name = 'player_2';
+    this.enemy_1 = this.physics.add.sprite(130, 240, 'star').setInteractive();
+    this.enemy_1.name = 'enemy_1';
 
+    this.createActiveMarker(true);
     this.createBattleEventHandler();
+  }
+
+  createActiveMarker(onStart) {
+    if(onStart) {
+      this.showActive = this.add.graphics();
+      this.showActive.fillStyle(0xFFFFFF);
+    }
+    this.showActive.clear();
+
+    const getTargetSize = this[this.activeTarget].getBounds();
+    this.showActive.fillRect(
+      getTargetSize.x - 5,  // Xpos
+      getTargetSize.y + getTargetSize.height + 4,  //Ypos
+      getTargetSize.width + 10,  // width
+      5  // height
+    );
+  }
+
+  spriteClickHandler(pointer, sprite) {
+    this.activeTarget = sprite.name;
+    this.createActiveMarker(false);
+    this.events.emit('chosenTarget', {name: sprite.name});
   }
 
   attackAnimation(options) {
@@ -112,6 +140,8 @@ class BattleScene extends Scene {
     this.battleMenu.events.on('Defend', (options) => this.defendAnimation(options));
     this.battleMenu.events.on('Items', (options) => this.itemAnimation(options));
     this.battleMenu.events.on('Enemy_attack', (options) => this.enemyAttackAnimation(options));
+
+    this.input.on('gameobjectdown', this.spriteClickHandler, this);
   }
 }
 

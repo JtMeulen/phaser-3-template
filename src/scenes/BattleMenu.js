@@ -60,8 +60,10 @@ class BattleMenu extends Scene {
     this.createTimerMenu();
     this.createSecondMenu();
 
-    // Listen for the finished fighting animations
-    this.scene.get('BattleScene').events.on('resumeTimer', () => this.turnFinished());
+    // Listen for events
+    this.BattleScene = this.scene.get('BattleScene')
+    this.BattleScene.events.on('resumeTimer', () => this.turnFinished());
+    this.BattleScene.events.on('chosenTarget', ({name}) => this.chosenTarget(name));
   }
 
   update() {
@@ -84,7 +86,7 @@ class BattleMenu extends Scene {
     this.statsTextP1.setText('P1: ' + this.battleStats.player_1.hp);
     this.statsTextP2.setText('P2: ' + this.battleStats.player_2.hp);
     this.statsTextE1.setText('E1: ' + this.battleStats.enemy_1.hp);
-
+    console.log('CHECK FOR DEAD');
     this.pausedTimer = false;
   }
 
@@ -131,6 +133,10 @@ class BattleMenu extends Scene {
     this.option_4 = this.add.text(150, 540, '', { fill: '#fff' })
       .setInteractive()
       .on('pointerdown', () => this.SecondMenuClickHandler(4));
+  }
+
+  chosenTarget(name) {
+    this.battleParams.chosenEnemy = name;
   }
 
   battleOptionsClickHandler(option) {
