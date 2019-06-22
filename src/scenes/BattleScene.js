@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import forest_bg from "../assets/forest_bg.jpg";
 import arrow_down from "../assets/arrow_down.png";
+import sword_cursor from "../assets/sword_cursor.png";
 import monster from "../assets/monster.png";
 import characters from "../assets/characters.png";
 
@@ -29,11 +30,11 @@ class BattleScene extends Scene {
   create() {
     this.forestBG = this.add.image(0, 0, 'forest_bg').setOrigin(0, 0);
 
-    this.player_1 = this.physics.add.sprite(600, 220, 'character').setInteractive();
+    this.player_1 = this.physics.add.sprite(600, 220, 'character').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
     this.player_1.name = 'player_1';
-    this.player_2 = this.physics.add.sprite(630, 350, 'character').setInteractive();
+    this.player_2 = this.physics.add.sprite(630, 350, 'character').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
     this.player_2.name = 'player_2';
-    this.enemy_1 = this.physics.add.sprite(130, 240, 'monster').setInteractive();
+    this.enemy_1 = this.physics.add.sprite(130, 240, 'monster').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
     this.enemy_1.name = 'enemy_1';
     this.enemy_1.setFlipX(true);
 
