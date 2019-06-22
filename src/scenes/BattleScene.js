@@ -63,7 +63,7 @@ class BattleScene extends Scene {
     const bounds = this[options.chosenEnemy].getBounds();
     const originalPosition = this[options.activeChar].getCenter();
 
-    this.showActive.clear();
+    this.arrow_down.setPosition(-200, -200);
     this[options.activeChar].anims.play(`${options.activeChar}_attack`, true);
 
     this.attackTimeLine = this.tweens.createTimeline();
@@ -100,19 +100,19 @@ class BattleScene extends Scene {
   }
 
   magicAnimation(options) {
-    this.showActive.clear();
+    this.arrow_down.setPosition(-200, -200);
     this.events.emit('resumeTimer');
     this.createActiveMarker(false);
   }
 
   defendAnimation(options) {
-    this.showActive.clear();
+    this.arrow_down.setPosition(-200, -200);
     this.events.emit('resumeTimer');
     this.createActiveMarker(false);
   }
 
   itemAnimation(options) {
-    this.showActive.clear();
+    this.arrow_down.setPosition(-200, -200);
     this.events.emit('resumeTimer');
     this.createActiveMarker(false);
   }
@@ -122,7 +122,7 @@ class BattleScene extends Scene {
     const originalPosition = this[options.this_enemy].getCenter();
     const bounds = this[options.this_enemy].getBounds();
 
-    this.showActive.clear();
+    this.arrow_down.setPosition(-200, -200);
     this[options.this_enemy].anims.play(`${options.this_enemy}_walk`, true);
 
     this.attackTimeLine = this.tweens.createTimeline();
