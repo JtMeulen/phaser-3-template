@@ -267,7 +267,7 @@ class BattleScene extends Scene {
     this.anims.create({
       key: 'player_1_idle',
       frames: this.anims.generateFrameNumbers('player_1', { start: 27, end: 35 }),
-      frameRate: 3,
+      frameRate: 15,
       repeat: -1
     });
 
