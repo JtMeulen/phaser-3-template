@@ -4,6 +4,7 @@ import arrow_down from "../assets/arrow_down.png";
 import sword_cursor from "../assets/sword_cursor.png";
 import monster from "../assets/monster.png";
 import characters from "../assets/characters.png";
+import player_1 from "../assets/player_1.png";
 import fireball from "../assets/fireball.png";
 import iceball from "../assets/iceball.png";
 import lightning from "../assets/lightning.png";
@@ -23,6 +24,11 @@ class BattleScene extends Scene {
     this.load.spritesheet('character',
         characters,
         { frameWidth: 48, frameHeight: 48 }
+    );
+
+    this.load.spritesheet('player_1',
+    player_1,
+        { frameWidth: 64, frameHeight: 64 }
     );
 
     this.load.spritesheet('monster',
@@ -54,7 +60,7 @@ class BattleScene extends Scene {
   create() {
     this.forestBG = this.add.image(0, 0, 'forest_bg').setOrigin(0, 0);
 
-    this.player_1 = this.physics.add.sprite(600, 220, 'character').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
+    this.player_1 = this.physics.add.sprite(600, 220, 'player_1').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
     this.player_1.name = 'player_1';
     this.player_2 = this.physics.add.sprite(630, 350, 'character').setInteractive({ cursor: 'url('+ sword_cursor + '), pointer' });
     this.player_2.name = 'player_2';
@@ -89,17 +95,18 @@ class BattleScene extends Scene {
     const originalPosition = this[options.activeChar].getCenter();
 
     this.arrow_down.setPosition(-200, -200);
-    this[options.activeChar].anims.play(`${options.activeChar}_attack`, true);
+    this[options.activeChar].anims.play(`${options.activeChar}_walk`, true);
 
     this.attackTimeLine = this.tweens.createTimeline();
     this.attackTimeLine.add({
         targets: this[options.activeChar],
-        x: goToPosition.x + (bounds.width / 2),
+        x: goToPosition.x + (bounds.width / 2) + 5,
         y: goToPosition.y,
         ease: 'Cubic',
         duration: 1000,
         onComplete: () => {
           // PLAY SOUND HERE
+          this[options.activeChar].anims.play(`${options.activeChar}_attack`, true);
           this[options.chosenEnemy].setTint(0xff0000)
         }
     });
@@ -110,7 +117,7 @@ class BattleScene extends Scene {
         y: originalPosition.y,
         ease: 'Cubic',
         duration: 1000,
-        delay: 300,
+        delay: 800,
         onUpdate: () => {
           this[options.chosenEnemy].clearTint()
         },
@@ -135,43 +142,49 @@ class BattleScene extends Scene {
     }
     const attackType = magicMap[options.chosenOption];
 
-    this.arrow_down.setPosition(-200, -200);
-    this.magicAttack = this.physics.add.sprite(startPosition.x, startPosition.y, attackType);
+    this[options.activeChar].anims.play(`${options.activeChar}_casting`, true);
 
-    // Set options per attack
-    if(options.chosenOption === 1) {
-      this.magicAttack.setScale(1.5);
-    } else if(options.chosenOption === 2 ) {
-      this.magicAttack.setScale(0.7);
-      this.magicAttack.setFlipX(true);
-    } else if(options.chosenOption === 3 ) {
-      this.magicAttack.setFlipX(true);
-    } else if(options.chosenOption === 4 ) {
-      this.magicAttack.setScale(1.5);
-    };
+    // Wait for casting anim to finish
+    setTimeout(() => {
+      this.arrow_down.setPosition(-200, -200);
+      this.magicAttack = this.physics.add.sprite(startPosition.x, startPosition.y, attackType);
 
-    this.magicAttack.anims.play(attackType, true);
+      // Set options per attack
+      if(options.chosenOption === 1) {
+        this.magicAttack.setScale(1.5);
+      } else if(options.chosenOption === 2 ) {
+        this.magicAttack.setScale(0.7);
+        this.magicAttack.setFlipX(true);
+      } else if(options.chosenOption === 3 ) {
+        this.magicAttack.setFlipX(true);
+      } else if(options.chosenOption === 4 ) {
+        this.magicAttack.setScale(1.5);
+      };
 
-    this.attackTimeLine = this.tweens.createTimeline();
-    this.attackTimeLine.add({
-        targets: this.magicAttack,
-        x: goToPosition.x,
-        y: goToPosition.y,
-        ease: 'Linear',
-        duration: 800,
-        onComplete: () => {
-          // PLAY SOUND HERE
-          this.magicAttack.destroy();
-          this[options.chosenEnemy].setTint(0xff0000)
-          setTimeout(() => {
-            this[options.chosenEnemy].clearTint()
-            this.events.emit('resumeTimer');
-            this.createActiveMarker(false);
-          }, 200)
-        }
-    });
+      this.magicAttack.anims.play(attackType, true);
 
-    this.attackTimeLine.play();
+      this.attackTimeLine = this.tweens.createTimeline();
+      this.attackTimeLine.add({
+          targets: this.magicAttack,
+          x: goToPosition.x,
+          y: goToPosition.y,
+          ease: 'Linear',
+          duration: 800,
+          onComplete: () => {
+            // PLAY SOUND HERE
+            this[options.activeChar].anims.play(`${options.activeChar}_idle`, true);
+            this.magicAttack.destroy();
+            this[options.chosenEnemy].setTint(0xff0000)
+            setTimeout(() => {
+              this[options.chosenEnemy].clearTint()
+              this.events.emit('resumeTimer');
+              this.createActiveMarker(false);
+            }, 200)
+          }
+      });
+
+      this.attackTimeLine.play();
+    }, 1000);
   }
 
   defendAnimation(options) {
@@ -231,9 +244,30 @@ class BattleScene extends Scene {
 
   createAnimations() {
     this.anims.create({
+      key: 'player_1_walk',
+      frames: this.anims.generateFrameNumbers('player_1', { start: 0, end: 8 }),
+      frameRate: 15,
+      repeat: -1
+    });
+
+    this.anims.create({
       key: 'player_1_attack',
-      frames: this.anims.generateFrameNumbers('character', { start: 12, end: 14 }),
-      frameRate: 5,
+      frames: this.anims.generateFrameNumbers('player_1', { start: 9, end: 16 }),
+      frameRate: 12,
+      repeat: 0
+    });
+
+    this.anims.create({
+      key: 'player_1_casting',
+      frames: this.anims.generateFrameNumbers('player_1', { start: 18, end: 24 }),
+      frameRate: 10,
+      repeat: 0
+    });
+
+    this.anims.create({
+      key: 'player_1_idle',
+      frames: this.anims.generateFrameNumbers('player_1', { start: 27, end: 35 }),
+      frameRate: 3,
       repeat: -1
     });
 
@@ -245,14 +279,21 @@ class BattleScene extends Scene {
     });
 
     this.anims.create({
-      key: 'player_1_idle',
-      frames: this.anims.generateFrameNumbers('character', { start: 0, end: 2 }),
+      key: 'player_2_idle',
+      frames: this.anims.generateFrameNumbers('character', { start: 3, end: 5 }),
       frameRate: 5,
       repeat: -1
     });
 
     this.anims.create({
-      key: 'player_2_idle',
+      key: 'player_2_cast',
+      frames: this.anims.generateFrameNumbers('character', { start: 15, end: 17 }),
+      frameRate: 5,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'player_2_walk',
       frames: this.anims.generateFrameNumbers('character', { start: 3, end: 5 }),
       frameRate: 5,
       repeat: -1
