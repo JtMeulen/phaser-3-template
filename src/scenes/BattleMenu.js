@@ -176,7 +176,7 @@ class BattleMenu extends Scene {
     this.option_1.setText('Fire');
     this.option_2.setText('Lightning');
     this.option_3.setText('Ice');
-    this.option_4.setText('Earth');
+    this.option_4.setText('Wind');
   }
 
   openItemOptions() {

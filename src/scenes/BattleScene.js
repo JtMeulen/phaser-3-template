@@ -4,6 +4,10 @@ import arrow_down from "../assets/arrow_down.png";
 import sword_cursor from "../assets/sword_cursor.png";
 import monster from "../assets/monster.png";
 import characters from "../assets/characters.png";
+import fireball from "../assets/fireball.png";
+import iceball from "../assets/iceball.png";
+import lightning from "../assets/lightning.png";
+import tornado from "../assets/tornado.png";
 
 class BattleScene extends Scene {
   constructor(){
@@ -24,6 +28,26 @@ class BattleScene extends Scene {
     this.load.spritesheet('monster',
         monster,
         { frameWidth: 199.6, frameHeight: 198 }
+    );
+
+    this.load.spritesheet('fire',
+        fireball,
+        { frameWidth: 64, frameHeight: 31 }
+    );
+
+    this.load.spritesheet('ice',
+        iceball,
+        { frameWidth: 125.9, frameHeight: 52 }
+    );
+
+    this.load.spritesheet('lightning',
+        lightning,
+        { frameWidth: 192, frameHeight: 192 }
+    );
+
+    this.load.spritesheet('tornado',
+        tornado,
+        { frameWidth: 64, frameHeight: 64 }
     );
   }
 
@@ -101,9 +125,53 @@ class BattleScene extends Scene {
   }
 
   magicAnimation(options) {
+    const goToPosition = this[options.chosenEnemy].getCenter();
+    const startPosition = this[options.activeChar].getCenter();
+    const magicMap = {
+      1: 'fire',
+      2: 'lightning',
+      3: 'ice',
+      4: 'tornado'
+    }
+    const attackType = magicMap[options.chosenOption];
+
     this.arrow_down.setPosition(-200, -200);
-    this.events.emit('resumeTimer');
-    this.createActiveMarker(false);
+    this.magicAttack = this.physics.add.sprite(startPosition.x, startPosition.y, attackType);
+
+    // Set options per attack
+    if(options.chosenOption === 1) {
+      this.magicAttack.setScale(1.5);
+    } else if(options.chosenOption === 2 ) {
+      this.magicAttack.setScale(0.7);
+      this.magicAttack.setFlipX(true);
+    } else if(options.chosenOption === 3 ) {
+      this.magicAttack.setFlipX(true);
+    } else if(options.chosenOption === 4 ) {
+      this.magicAttack.setScale(1.5);
+    };
+
+    this.magicAttack.anims.play(attackType, true);
+
+    this.attackTimeLine = this.tweens.createTimeline();
+    this.attackTimeLine.add({
+        targets: this.magicAttack,
+        x: goToPosition.x,
+        y: goToPosition.y,
+        ease: 'Linear',
+        duration: 800,
+        onComplete: () => {
+          // PLAY SOUND HERE
+          this.magicAttack.destroy();
+          this[options.chosenEnemy].setTint(0xff0000)
+          setTimeout(() => {
+            this[options.chosenEnemy].clearTint()
+            this.events.emit('resumeTimer');
+            this.createActiveMarker(false);
+          }, 200)
+        }
+    });
+
+    this.attackTimeLine.play();
   }
 
   defendAnimation(options) {
@@ -163,13 +231,6 @@ class BattleScene extends Scene {
 
   createAnimations() {
     this.anims.create({
-      key: 'arrow_bounce',
-      frames: this.anims.generateFrameNumbers('character', { start: 12, end: 14 }),
-      frameRate: 5,
-      repeat: -1
-    });
-
-    this.anims.create({
       key: 'player_1_attack',
       frames: this.anims.generateFrameNumbers('character', { start: 12, end: 14 }),
       frameRate: 5,
@@ -216,6 +277,34 @@ class BattleScene extends Scene {
       frames: this.anims.generateFrameNumbers('monster', { start: 24, end: 29 }),
       frameRate: 10,
       repeat: 0
+    });
+
+    this.anims.create({
+      key: 'fire',
+      frames: this.anims.generateFrameNumbers('fire', { start: 0, end: 7 }),
+      frameRate: 15,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'ice',
+      frames: this.anims.generateFrameNumbers('ice', { start: 0, end: 8 }),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'lightning',
+      frames: this.anims.generateFrameNumbers('lightning', { frames: [0,1,2,3,2,1,0,1,2,3,4,5,6,7] }),
+      frameRate: 13,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'tornado',
+      frames: this.anims.generateFrameNumbers('tornado', { start: 0, end: 9 }),
+      frameRate: 12,
+      repeat: -1
     });
 
     this.player_1.anims.play('player_1_idle', true);
